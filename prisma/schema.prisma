@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model job {
+  id               String  @id @default(auto()) @map("_id") @db.ObjectId
+  title            String
+  description      String
+  job_type         String  @default("on site")
+  employment_type  String  @default("fulltime")
+  location         String
+  salary           Int
+  category         String
+  job_id           String?
+  apply_link       String?
+  responsibilities String?
+  qualifications   String?
+  logo             String?
+}
+
+model user {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  email       String        @unique
+  password    String
+  role        String        @default("user")
+  review      review[]
+  application application[]
+}
+model company {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  ownerId     String    @unique
+  jobs        opening[]
+
+  review      review[]  // 👈 ADD THIS
+}
+
+
+model opening {
+  id               String  @id @default(auto()) @map("_id") @db.ObjectId
+  title            String
+  description      String
+  job_type         String  @default("on site")
+  employment_type  String  @default("fulltime")
+  location         String
+  salary           Int
+  company_id       String  @db.ObjectId
+  company          company @relation(fields: [company_id], references: [id])
+}
+model review {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  content String
+  user_id String @db.ObjectId
+  company_id String @db.ObjectId
+
+  user    user    @relation(fields: [user_id], references: [id])
+  company company @relation(fields: [company_id], references: [id]) 
+}
+
+
+  //kisne or ka apply kiya 
+model application {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  user_id String @db.ObjectId
+  user    user   @relation(fields: [user_id], references: [id])
+  job_id  String
+}
