@@ -18,8 +18,8 @@ export default function layout({
       const data=await res?.json();
       if(data){
         console.log("data:",data);
-        console.log("company",data.company)
-        console.log("data.email :",data.data.email)
+        console.log("company",data?.company)
+        console.log("data.email :",data?.data?.email)
         const TempUser={
           id:data.data?.id,
           email:data.data?.email,

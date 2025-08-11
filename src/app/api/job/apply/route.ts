@@ -1,6 +1,7 @@
 import { getUserFromCookie } from "@/app/Helper/helper";
 import prismaClient from "@/app/service/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { CgPathCrop } from "react-icons/cg";
 
 export async function GET(req:NextRequest,{params}:{params:{id:string}}){
     const user=await getUserFromCookie();  //current user details using the cookie token "email" to fetch all
@@ -30,8 +31,9 @@ export async function GET(req:NextRequest,{params}:{params:{id:string}}){
         })
 
     }
-    catch(error){
+    catch(error:any){
         console.log(error.message)
     }
 
 }
+

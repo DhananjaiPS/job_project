@@ -53,6 +53,7 @@ model opening {
   salary           Int
   company_id       String  @db.ObjectId
   company          company @relation(fields: [company_id], references: [id])
+  application application[]
 }
 model review {
   id      String @id @default(auto()) @map("_id") @db.ObjectId
@@ -70,5 +71,9 @@ model application {
   id      String @id @default(auto()) @map("_id") @db.ObjectId
   user_id String @db.ObjectId
   user    user   @relation(fields: [user_id], references: [id])
-  job_id  String
+  job_id  String  @db.ObjectId
+  opening opening @relation(fields: [job_id], references: [id])
 }
+
+
+

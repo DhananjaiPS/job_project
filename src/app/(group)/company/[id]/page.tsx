@@ -1,34 +1,65 @@
 "use client";
 import EditCompanyButton from "@/app/components/EditCompanyButton";
-import { div } from "framer-motion/client";
+import { Tabs, Text, Box,Dialog } from "@radix-ui/themes";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
+interface Job {
+  id: string;
+  title: string;
+  description: string;
+  job_type: string;
+  employment_type: string;
+  location: string;
+  salary: number;
+}
+
+interface User {
+  email: string;
+  id: string;
+  role: string;
+}
+
+interface Review {
+  content: string;
+  user: {
+    email: string;
+  };
+}
+
+interface Company {
+  id: string;
+  name: string;
+  description: string;
+  jobs: Job[];
+  review: Review[];
+}
+
 export default function CompanyWithOwnerPage() {
   const params = useParams();
-  const id = params.id;
+  const id = params.id as string;
 
-  const [company, setCompany] = useState(null);
-  const [owner, setOwner] = useState(null);
+  const [company, setCompany] = useState<Company | null>(null);
+  const [owner, setOwner] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [jobs, setJobs] = useState([]);
-  const [review, setReview] = useState([])
+const [open, setOpen] = useState(false);
+const [reviewText, setReviewText] = useState("");
   useEffect(() => {
     async function fetchDetails() {
       try {
         const res = await fetch(`http://localhost:3000/api/company/${id}`);
         const data = await res.json();
-        console.log("company details + job list + reviews :", data?.data)
-        console.log("company job list :", data.data.company.jobs)
-        setJobs(data.data.company.jobs)
-        console.log("company job review :", data.data.company.review)
-        setReview(data.data.company.review)
 
-        setCompany(data?.data?.company);
-        setOwner(data?.data?.owner);
-        setLoading(false);
+        if (data.success) {
+          const { company, owner } = data.data;
+          setCompany(company);
+          setOwner(owner);
+        } else {
+          console.error("API Error:", data.message);
+        }
       } catch (error) {
         console.error("Error fetching company:", error);
+      } finally {
         setLoading(false);
       }
     }
@@ -37,26 +68,17 @@ export default function CompanyWithOwnerPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-sm text-gray-600 font-medium">Loading company details...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div>Loading company details...</div>
       </div>
     );
   }
 
   if (!company || !owner) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white p-6 rounded-lg shadow-lg text-center max-w-md">
-          <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </div>
-          <h2 className="text-lg font-semibold text-gray-800 mb-2">Not Found</h2>
-          <p className="text-sm text-gray-600">Company or owner data could not be found.</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="bg-white p-6 rounded-lg shadow-md text-center">
+          <p className="text-red-600 font-bold">Company or owner not found</p>
         </div>
       </div>
     );
@@ -65,128 +87,187 @@ export default function CompanyWithOwnerPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-base">
-                  {company.name.charAt(0).toUpperCase()}
-                </span>
-              </div>
-              <div>
-                <h1 className="text-lg sm:text-2xl font-bold text-gray-900">{company.name}</h1>
-                <p className="text-sm text-gray-500">Company Profile</p>
-              </div>
+      <div className="bg-white border-b shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <div className="bg-blue-500 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg">
+              {company.name[0].toUpperCase()}
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-
-              <EditCompanyButton company={company} />
-
-              <button className="w-full sm:w-auto px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 text-sm font-medium">
-                Share
-              </button>
+            <div>
+              <h1 className="text-xl font-bold">{company.name}</h1>
+              <p className="text-sm text-gray-500">Company Profile</p>
             </div>
+          </div>
+          <div className="flex gap-2">
+            <EditCompanyButton company={company} />
+            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">
+              Share
+            </button>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Company Info */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="bg-white p-4 rounded-lg border">
+            <h2 className="font-semibold text-lg mb-2">About Company</h2>
+            <p>{company.description || "No description provided."}</p>
+          </div>
 
-          {/* Company Info */}
-          <div className="lg:col-span-2 space-y-4">
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">About Company</h2>
-              <p className="text-sm sm:text-base text-gray-700">
-                {company.description || "Committed to innovation and quality services."}
-              </p>
-            </div>
-
-            {/* Stats */}
-
-
-            {/* Details */}
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Company Details</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-500">Company Name</p>
-                  <p className="text-gray-900 font-medium">{company.name}</p>
-                </div>
-
+          <div className="bg-white p-4 rounded-lg border">
+            <h2 className="font-semibold text-lg mb-4">Company Details</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-gray-500">Company Name</p>
+                <p className="text-gray-900">{company.name}</p>
               </div>
             </div>
           </div>
-          <div>
-            <p>Company latest jobs :</p>
-            {
-              jobs.map((item, index) => {
-                return (
-                  <div key={index}>
-                    <div>{item.title}</div>
-                    <div>{item.description}</div>
-                    <div>{item.job_type}</div>
-                    <div>{item.location}</div>
+        </div>
 
-                    <button className="bg-red-500 text-white p-3">Delete</button>
-                    <button className="bg-blue-500 text-white p-3">Edit</button>
-                  </div>
-                )
-              })
-            }
-          </div>
-          <div>
-            <p>Company latest review :</p>
-            <button>add review</button>
-            {review.length==0 && 
-            <div>
-              no reviews yet
-            </div>}
-            {
-              review.length>0 && review.map((item, index) => {
-                return (
-                  <div key={index}>
-                    <div>{item.title}</div>
-                    <div>{item.description}</div>
-                    <div>{item.job_type}</div>
-                    <div>{item.location}</div>
+        {/* Sidebar Tabs */}
+        <div>
+          <Tabs.Root defaultValue="jobs">
+            <Tabs.List>
+              <Tabs.Trigger value="jobs">Latest Jobs</Tabs.Trigger>
+              <Tabs.Trigger value="reviews">Reviews</Tabs.Trigger>
+            </Tabs.List>
 
-                    <button className="bg-red-500 text-white p-3">Delete</button>
-                    <button className="bg-blue-500 text-white p-3">Edit</button>
+            <Box pt="3">
+              <Tabs.Content value="jobs">
+                {company.jobs.length === 0 && <div>No jobs available.</div>}
+                {company.jobs.map((job) => (
+                  <div
+                    key={job.id}
+                    className="border rounded p-3 mb-3 bg-white"
+                  >
+                    <div className="font-bold text-blue-600">{job.title}</div>
+                    <div className="text-sm text-gray-700">{job.description}</div>
+                    <div className="text-xs text-gray-500">
+                      {job.job_type} | {job.employment_type}
+                    </div>
+                    <div className="text-xs text-gray-500">{job.location}</div>
+                    <div className="mt-2 flex gap-2">
+                      <button className="bg-red-500 text-white px-3 py-1 rounded text-xs">
+                        Delete
+                      </button>
+                      <button className="bg-blue-500 text-white px-3 py-1 rounded text-xs">
+                        Edit
+                      </button>
+                    </div>
                   </div>
-                )
-              })
-            }
-          </div>
-          {/* Owner Sidebar */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
+                ))}
+              </Tabs.Content>
+
+              <Tabs.Content value="reviews">
+                <button className="mb-3 bg-green-500 text-white px-3 py-1 rounded text-sm">
+                  Add Review
+                </button>
+                <Dialog.Root open={open} onOpenChange={setOpen}>
+  <Dialog.Trigger>
+    <button className="mb-3 bg-green-500 text-white px-3 py-1 rounded text-sm">
+      Add Review
+    </button>
+  </Dialog.Trigger>
+
+  <Dialog.Content maxWidth="450px">
+    <Dialog.Title>Add a Review</Dialog.Title>
+    <Dialog.Description>Share your experience about this company.</Dialog.Description>
+
+    <textarea
+      className="w-full border rounded-md mt-4 p-2"
+      rows={4}
+      placeholder="Write your review here..."
+      value={reviewText}
+      onChange={(e) => setReviewText(e.target.value)}
+    />
+
+    <div className="flex justify-end mt-4 gap-3">
+      <Dialog.Close>
+        <button className="px-4 py-2 bg-gray-200 rounded-md">Cancel</button>
+      </Dialog.Close>
+      <button
+        className="px-4 py-2 bg-blue-600 text-white rounded-md"
+        onClick={async () => {
+          const res = await fetch(`http://localhost:3000/api/review`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              company_id: id,
+              content: reviewText,
+              user_id: "USER_ID_HERE", // replace with real user id from context
+            }),
+          });
+
+          const data = await res.json();
+          if (data.success) {
+            setOpen(false);
+            setReviewText("");
+
+            // Optional: Refresh review list
+            setCompany((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    review: [...prev.review, { content: reviewText, user: { email: "You" } }],
+                  }
+                : null
+            );
+          } else {
+            alert(data.message || "Failed to add review");
+          }
+        }}
+      >
+        Submit
+      </button>
+    </div>
+  </Dialog.Content>
+</Dialog.Root>
+
+                {company.review.length === 0 ? (
+                  <div>No reviews yet.</div>
+                ) : (
+                  company.review.map((rev, index) => (
+                    <div
+                      key={index}
+                      className="border rounded p-3 mb-3 bg-white"
+                    >
+                      <p className="text-gray-800">{rev.content}</p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        By: {rev.user?.email}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </Tabs.Content>
+            </Box>
+          </Tabs.Root>
+
+          {/* Owner Info */}
+          <div className="bg-white mt-6 p-4 border rounded-lg">
             <div className="text-center">
-              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white font-bold text-xl">
-                  {owner.email.charAt(0).toUpperCase()}
-                </span>
+              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto text-white font-bold text-2xl">
+                {owner.email[0].toUpperCase()}
               </div>
-              <h3 className="text-base font-semibold text-gray-900">Company Owner</h3>
-              <p className="text-xs text-blue-600 uppercase font-medium mt-1">{owner.role}</p>
+              <h3 className="mt-2 text-lg font-semibold">Owner</h3>
+              <p className="text-sm text-blue-600 uppercase">{owner.role}</p>
             </div>
-
-            <div className="mt-6 text-sm space-y-4">
+            <div className="mt-4 text-sm space-y-2">
               <div>
                 <p className="text-gray-500">Email</p>
-                <p className="text-gray-900 font-medium truncate">{owner.email}</p>
+                <p className="text-gray-900">{owner.email}</p>
               </div>
               <div>
                 <p className="text-gray-500">Owner ID</p>
-                <p className="text-gray-900 font-mono text-xs">{owner.id}</p>
+                <p className="text-gray-900 font-mono">{owner.id}</p>
               </div>
-              <button className="w-full mt-4 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 text-sm font-medium">
+              <button className="mt-4 w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 text-sm">
                 Contact Owner
               </button>
             </div>
           </div>
-
         </div>
       </div>
     </div>

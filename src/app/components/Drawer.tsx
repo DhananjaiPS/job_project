@@ -4,11 +4,12 @@ import { UserContext } from "../(group)/layout";
 import { logout } from "@/actions/logout";
 import Link from "next/link";
 import { ul } from "framer-motion/client";
+import { useRouter } from "next/navigation";
 
 export default function Drawer() {
   const [isOpen, setIsOpen] = useState(false);
-    const { user , setUser } = useContext(UserContext)
-
+  const { user, setUser } = useContext(UserContext)
+  const router = useRouter()
   const { email, company_id } = user
   console.log("Drawer company id :", company_id)
   async function handelLogout() {
@@ -16,7 +17,7 @@ export default function Drawer() {
     if (res.success) {
       alert(res.message);
       setUser("");
-
+      router.push("/login");
     }
   }
   return (
@@ -74,50 +75,50 @@ export default function Drawer() {
             </a>
           </li>}
           {email && (
-  <>
-    {!company_id && (
-      <li>
-        <a href="/company" onClick={() => setIsOpen(false)} className="hover:text-blue-600">
-          Add company
-        </a>
-      </li>
-    )}
+            <>
+              {!company_id && (
+                <li>
+                  <a href="/company" onClick={() => setIsOpen(false)} className="hover:text-blue-600">
+                    Add company
+                  </a>
+                </li>
+              )}
 
-    {company_id && (
-      <>
-        <li>
-          <Link href={`/company/${company_id}`}>
-            <p className="hover:text-blue-600" onClick={() => setIsOpen(false)}>
-              Company Details
-            </p>
-          </Link>
-        </li>
-        <li>
-          <a href="/addJobs" onClick={() => setIsOpen(false)} className="hover:text-blue-600">
-            Add Jobs
-          </a>
-        </li>
-      </>
-    )}
+              {company_id && (
+                <>
+                  <li>
+                    <Link href={`/company/${company_id}`}>
+                      <p className="hover:text-blue-600" onClick={() => setIsOpen(false)}>
+                        Company Details
+                      </p>
+                    </Link>
+                  </li>
+                  <li>
+                    <a href="/addJobs" onClick={() => setIsOpen(false)} className="hover:text-blue-600">
+                      Add Jobs
+                    </a>
+                  </li>
+                </>
+              )}
 
-    <li>
-      <a href="/profile" onClick={() => setIsOpen(false)} className="hover:text-blue-600">
-        Profile
-      </a>
-    </li>
-    <li>
-      <a
-        className="hover:text-blue-600"
-        onClick={async () => {
-          await handelLogout();
-          setIsOpen(false);
-        }}
-      >
-        Log out
-      </a>
-    </li>
-  </>
-)}
+              <li>
+                <a href="/profile" onClick={() => setIsOpen(false)} className="hover:text-blue-600">
+                  Profile
+                </a>
+              </li>
+              <li>
+                <a
+                  className="hover:text-blue-600"
+                  onClick={async () => {
+                    await handelLogout();
+                    setIsOpen(false);
+                  }}
+                >
+                  Log out
+                </a>
+              </li>
+            </>
+          )}
 
 
         </ul>

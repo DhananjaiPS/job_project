@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useContext, useState, useTransition } from "react";
 import {
   Dialog,
@@ -9,10 +10,12 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { UserContext } from "../(group)/layout";
+import { FaPlus } from "react-icons/fa"; // Scroll wale button ke liye icon
+import { useRouter } from "next/navigation";
 
-export default function AddJobButton() {
-  const [open, setOpen] = useState(false); // ✅ Dialog open/close state
-
+export default function AddJobButton({ scroll }: { scroll: boolean }) {
+  const [open, setOpen] = useState(false);
+  const router=useRouter()
   const [jobTitle, setJobTitle] = useState("");
   const [jobDescription, setDescription] = useState("");
   const [jobEmploymentType, setEmploymentType] = useState("");
@@ -22,8 +25,6 @@ export default function AddJobButton() {
 
   const { user } = useContext(UserContext);
   const [isPending, startTransition] = useTransition();
-
-  console.log("user ki company ki id", user);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,12 +36,12 @@ export default function AddJobButton() {
       job_type: jobType,
       employment_type: jobEmploymentType,
       location: jobLocation,
-      company_id: user?.company_id, // Make sure user is not undefined
+      company_id: user?.company_id,
     };
 
     try {
       startTransition(async () => {
-        const res = await fetch("http://localhost:3000/api/addJobs", {
+        const res = await fetch("/api/addJobs", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -52,15 +53,14 @@ export default function AddJobButton() {
 
         if (res.ok) {
           alert("Job added successfully!");
-          // Reset form
           setJobTitle("");
           setDescription("");
           setEmploymentType("");
           setJobLocation("");
           setJobSalary("");
           setJobType("");
-
-          setOpen(false); // ✅ Close dialog after successful submit
+          setOpen(false);
+          router.push("/addJobs")
         } else {
           alert(data.message || "Something went wrong!");
         }
@@ -72,10 +72,20 @@ export default function AddJobButton() {
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
+      {/* Button trigger */}
       <Dialog.Trigger>
-        <Button>Add Job</Button>
+        <button
+          className={
+            scroll
+              ? "w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700"
+              : "w-[30vh] h-[7vh] bg-white text-blue-600 text-xl p-2 font-semibold rounded hover:bg-blue-700 hover:text-white"
+          }
+        >
+          {scroll ? <FaPlus size={20} /> : "Add Job"}
+        </button>
       </Dialog.Trigger>
 
+      {/* Dialog content */}
       <Dialog.Content maxWidth="450px">
         <Dialog.Title>Add New Job</Dialog.Title>
         <Dialog.Description size="2" mb="4">

@@ -36,3 +36,37 @@ export async function GET(req:NextRequest,{params}:{params:{id:string}}){
     }
 
 }
+
+
+
+
+export async function DELETE(req:NextRequest,{params}:{params:{id:string}}) {
+    const {id}=await params
+    const user=await getUserFromCookie()
+    const job_id=id
+    if(user && job_id){
+        try{
+            const application=await prismaClient.application.deleteMany({
+                where:{
+                    user_id:user.id,
+                    job_id
+                }
+            })
+            if(application){
+                return NextResponse.json({
+                    success:true,
+                    message:"Application withdraw successfully !!!"
+                })
+            }
+        }
+        catch(err){
+            return NextResponse.json({
+                success:false,
+                message:"Fatal Error has occured"
+            })
+        }
+    }
+
+
+    
+}

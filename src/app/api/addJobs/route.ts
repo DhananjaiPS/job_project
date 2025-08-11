@@ -43,11 +43,6 @@ export async function POST(req: NextRequest) {
             message:"Oops Somthing went wrong"
         })
     }
-
-
-
-
-
 }
 
 

@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import {  UserContext } from "../layout";
 import { MainContext } from "@/app/layout";
-
+import { BsFilterLeft } from "react-icons/bs";
 export default function JobSearchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -47,6 +47,7 @@ export default function JobSearchPage() {
   const [jobType, setJobType] = useState("fulltime");
   const [minSalary, setMinSalary] = useState(1000);
   const [employmentType, setEmploymentType] = useState("any");
+  const [toggleFilters,setToggleFilters]=useState(false)
 
   // Sync filters with URL
   useEffect(() => {
@@ -162,11 +163,12 @@ export default function JobSearchPage() {
   setEmploymentType(et);
   setMinSalary(Number(ms));
 }, [searchParams]);
-
+console.log(toggleFilters)
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 w-full">
       {/* //Suggestion */}
+      <BsFilterLeft size={32} onClick={()=>setToggleFilters(prev=>!prev)}/>
       {suggestion && <div>
         
         {suggestion.map((item,index)=>{
@@ -177,7 +179,8 @@ export default function JobSearchPage() {
         </div>}
       <div className="max-w-full mx-auto flex gap-3 ">
         {/* Filter Section */}
-        <div className="mb-8 p-4 bg-white rounded shadow w-[49vh]">
+        {toggleFilters && 
+         <div className="mb-8 p-4 absolute bg-white rounded shadow w-fit">
           <h2 className="text-lg font-semibold text-indigo-700 mb-4">Filters</h2>
 
           {/* Search Input */}
@@ -242,6 +245,8 @@ export default function JobSearchPage() {
             Apply Filters
           </button>
         </div>
+        }
+       
 
         {/* Job Results */}
         {loading && <p className="text-center">Loading jobs...</p>}

@@ -42,7 +42,7 @@ export default function ViewJobApplicant({ job }) {
         <div>
             <Dialog.Root>
                 <Dialog.Trigger>
-                    <Button onClick={handelApplicants} className="bg-pink-500 px-5 py-2  w-[13vh]  mb-4 rounded hover:bg-gray-800 transition text-white text-sm">View applicant</Button>
+                    <button onClick={handelApplicants} className="bg-blue-800 px-5 py-2 w-full  sm:w-[30vh]  mb-4 rounded justify-center hover:bg-gray-800 transition text-white text-sm   items-center flex">View applicant</button>
                 </Dialog.Trigger>
 
                 <Dialog.Content maxWidth="450px">
