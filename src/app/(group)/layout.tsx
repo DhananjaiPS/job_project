@@ -1,50 +1,83 @@
 "use client"
 import React, { createContext, useEffect, useState } from 'react'
 import { Theme } from "@radix-ui/themes";
-
 import Navbar from "@/app/components/Navbar"
-export const  UserContext=createContext();
-export default function layout({
+
+// ----------- Types ----------
+type Company = {
+  id: string;
+  name: string;
+  description: string;
+  ownerId: string;
+}
+
+type User = {
+  id: string; 
+  email: string; 
+  password: string;
+  role:string,
+  company: Company;
+    company_id?: string; 
+}
+
+// Context type
+type UserContextType = {
+  user: User | null;
+  setUser: (value:User | null)=> void,
+  company: Company | null;
+  setCompany: (value:Company | null)=> void,
+}
+
+// Default value
+export const UserContext = createContext<UserContextType>({
+  user: null,
+  setUser: () => {},   // dummy function
+  company: null,
+  setCompany: () => {}, // dummy function
+});
+
+export default function Layout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
 
-  
-  const [user,setUser]=useState({})
-  useEffect(()=>{
+  const [user, setUser] = useState<User | null>(null);
+  const [company, setCompany] = useState<Company | null>(null);
+
+  useEffect(() => {
     async function getUser() {
-      const res=await fetch("http://localhost:3000/api/current_user");
-      const data=await res?.json();
-      if(data){
-        console.log("data:",data);
-        console.log("company",data?.company)
-        console.log("data.email :",data?.data?.email)
-        const TempUser={
-          id:data.data?.id,
-          email:data.data?.email,
-          role:data.data?.role,
-          company_id:data?.company?.id 
-        }
+      const res = await fetch("/api/current_user"); 
+      const data = await res.json();
+      if (data) {
+        console.log("data:", data);
+
+        setCompany(data?.company);
+
+        const TempUser: User = {
+          id: data?.data?.id,
+          email: data?.data?.email,
+          role:data?.data?.role,
+          password: "", // add empty if not returned
+          company: data?.company
+                    // role:data.data?.role, 
+
+        };
+
         setUser(TempUser);
       }
     }
-    getUser();      
-  },[]);   //it can be used like if user come can see the content but unable to do the like,comment,post without been login 
-  return (
-     <Theme>
-      <UserContext.Provider value={
-        {
-          user,setUser
-        }
-      }>
-    <div>
+    getUser();
+  }, []);
 
-        <Navbar/>
-        {children}
-      
-    </div>
+  return (
+    <Theme>
+      <UserContext.Provider value={{ user, setUser, company, setCompany }}>
+        <div>
+          <Navbar />
+          {children}
+        </div>
       </UserContext.Provider>
-       </Theme>
-  )
+    </Theme>
+  );
 }

@@ -1,3 +1,5 @@
+//@ts-nocheck
+
 "use client"
 import { Dialog, Button, Flex, Text, TextField } from "@radix-ui/themes";
 import { useParams } from "next/navigation";
@@ -31,7 +33,7 @@ export default function EditCompanyButton({ company }) {
     }
 
     return (
-        <div>
+        <div className="w-[30vh]">
             <Dialog.Root>
                 <Dialog.Trigger>
                     <button className="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium">

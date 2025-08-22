@@ -1,7 +1,7 @@
 // /api/review/route.ts (or route.js)
 
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/app/service/prisma";
+import prisma from "@/service/prisma";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -14,6 +14,10 @@ export async function POST(req: NextRequest) {
         company_id,
         user_id,
       },
+      include:{
+        user:true
+      }
+      ,
     });
 
     return NextResponse.json({ success: true, data: newReview });

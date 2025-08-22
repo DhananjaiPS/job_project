@@ -1,8 +1,12 @@
 "use client";
-import EditCompanyButton from "@/app/components/EditCompanyButton";
-import { Tabs, Text, Box,Dialog } from "@radix-ui/themes";
+import EditCompanyButton from "@/app/components/buttons/EditCompanyButton";
+import { Tabs, Text, Box, Dialog } from "@radix-ui/themes";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState, useTransition } from "react";
+import { UserContext } from "../../layout";
+import EditJobForm from "@/app/components/buttons/EditJobform";
+import Link from "next/link";
+import { FaSpinner } from 'react-icons/fa';
 
 interface Job {
   id: string;
@@ -18,6 +22,7 @@ interface User {
   email: string;
   id: string;
   role: string;
+  company_id?: string; // ✅ added, since you check user.company_id
 }
 
 interface Review {
@@ -36,23 +41,29 @@ interface Company {
 }
 
 export default function CompanyWithOwnerPage() {
+  const [editingJob, setEditingJob] = useState<Job | null>(null); // ✅ typed correctly
+  const { user } = useContext(UserContext) as { user: User }; // ✅ strong typing
   const params = useParams();
   const id = params.id as string;
+  const [isPending, startTransition] = useTransition();
 
   const [company, setCompany] = useState<Company | null>(null);
   const [owner, setOwner] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-const [open, setOpen] = useState(false);
-const [reviewText, setReviewText] = useState("");
+  const [open, setOpen] = useState(false);
+  const [reviewText, setReviewText] = useState("");
+  const [companyJobs, setCompanyJobs] = useState<Job[]>([]); // ✅ type Job[]
+
   useEffect(() => {
     async function fetchDetails() {
       try {
-        const res = await fetch(`http://localhost:3000/api/company/${id}`);
+        const res = await fetch(`/api/company/${id}`);
         const data = await res.json();
 
         if (data.success) {
           const { company, owner } = data.data;
           setCompany(company);
+          setCompanyJobs(company?.jobs ?? []);
           setOwner(owner);
         } else {
           console.error("API Error:", data.message);
@@ -68,28 +79,84 @@ const [reviewText, setReviewText] = useState("");
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div>Loading company details...</div>
-      </div>
-    );
-  }
-
-  if (!company || !owner) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="bg-white p-6 rounded-lg shadow-md text-center">
-          <p className="text-red-600 font-bold">Company or owner not found</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4">
+          <FaSpinner className="animate-spin h-12 w-12 text-blue-600 mx-auto mb-4" />
+          <p className="text-center text-gray-600 font-medium">Loading company details...</p>
         </div>
       </div>
     );
   }
 
+  if (!company || !owner) {
+    return <div>Company or owner not found</div>;
+  }
+
+  async function handelReview() {
+    const object = {
+      company_id: id,
+      content: reviewText,
+      user_id: user?.id,
+    };
+
+    const res = await fetch(`/api/company/review`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(object),
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      setOpen(false);
+      setReviewText("");
+      setCompany((prev) =>
+        prev
+          ? {
+              ...prev,
+              review: [
+                ...prev.review,
+                {
+                  content: reviewText,
+                  user: { email: data?.user?.email ?? "Anonymous" }, // ✅ fallback for TS
+                },
+              ],
+            }
+          : null
+      );
+    } else {
+      alert(data.message || "Failed to add review");
+    }
+  }
+
+  async function handelDeleteJob(id: string) {
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/company/latestJob`, {
+          method: "DELETE",
+          body: JSON.stringify({ id }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(data.message);
+          setCompanyJobs((prev) => prev.filter((j) => j.id !== data.data.id));
+        } else {
+          alert(data.message);
+        }
+      } catch (err) {
+        alert(String(err));
+      }
+    });
+  }
+
+
+
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 py-4 gap-3 flex  flex-col sm:flex-row justify-between items-center ">
+          <div className="flex items-center justify-center sm:justify-normal sm:flex-row gap-4 w-full">
             <div className="bg-blue-500 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg">
               {company.name[0].toUpperCase()}
             </div>
@@ -98,19 +165,21 @@ const [reviewText, setReviewText] = useState("");
               <p className="text-sm text-gray-500">Company Profile</p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <EditCompanyButton company={company} />
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">
-              Share
-            </button>
-          </div>
+          {id == user.company_id &&
+            <div className="flex gap-2">
+
+
+              <EditCompanyButton company={company} />
+
+            </div>}
+
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col lg:grid-cols-3 gap-6">
         {/* Company Info */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-4  ">
           <div className="bg-white p-4 rounded-lg border">
             <h2 className="font-semibold text-lg mb-2">About Company</h2>
             <p>{company.description || "No description provided."}</p>
@@ -128,7 +197,7 @@ const [reviewText, setReviewText] = useState("");
         </div>
 
         {/* Sidebar Tabs */}
-        <div>
+        <div className="">
           <Tabs.Root defaultValue="jobs">
             <Tabs.List>
               <Tabs.Trigger value="jobs">Latest Jobs</Tabs.Trigger>
@@ -137,94 +206,81 @@ const [reviewText, setReviewText] = useState("");
 
             <Box pt="3">
               <Tabs.Content value="jobs">
-                {company.jobs.length === 0 && <div>No jobs available.</div>}
-                {company.jobs.map((job) => (
-                  <div
-                    key={job.id}
-                    className="border rounded p-3 mb-3 bg-white"
-                  >
-                    <div className="font-bold text-blue-600">{job.title}</div>
-                    <div className="text-sm text-gray-700">{job.description}</div>
-                    <div className="text-xs text-gray-500">
-                      {job.job_type} | {job.employment_type}
-                    </div>
-                    <div className="text-xs text-gray-500">{job.location}</div>
-                    <div className="mt-2 flex gap-2">
-                      <button className="bg-red-500 text-white px-3 py-1 rounded text-xs">
-                        Delete
-                      </button>
-                      <button className="bg-blue-500 text-white px-3 py-1 rounded text-xs">
-                        Edit
-                      </button>
-                    </div>
+                {companyJobs.length === 0 && <div>No jobs available.</div>}
+                {companyJobs.map( job  => (
+                
+                <div key={job.id} className="border p-4 rounded-md">
+                  <Link href={`/jobs/${job.id}`}>
+                  <h3 className="font-semibold">{job.title}</h3>
+                  <p>{job.description}</p>
+                  </Link>
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={() => setEditingJob(job)}
+                      className="px-3 py-1 bg-blue-500 text-white rounded"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handelDeleteJob(job.id)}
+                      className="px-3 py-1 bg-red-500 text-white rounded"
+                      disabled={isPending}
+                    >
+                      Delete
+                    </button>
                   </div>
+                </div> 
                 ))}
+
+                {editingJob && (
+                  <EditJobForm
+                    job={editingJob}
+                    onSave={(newjob) => {
+                      setCompanyJobs(prev =>
+                        prev.map(j => j?.id === newjob?.id ? newjob : j)
+                      );
+                      setEditingJob(null);
+                    }}
+                    onCancel={() => setEditingJob(null)}
+                  />
+                )}
+
               </Tabs.Content>
 
               <Tabs.Content value="reviews">
-                <button className="mb-3 bg-green-500 text-white px-3 py-1 rounded text-sm">
-                  Add Review
-                </button>
+
                 <Dialog.Root open={open} onOpenChange={setOpen}>
-  <Dialog.Trigger>
-    <button className="mb-3 bg-green-500 text-white px-3 py-1 rounded text-sm">
-      Add Review
-    </button>
-  </Dialog.Trigger>
+                  <Dialog.Trigger>
+                    <button className="mb-3 bg-green-500 text-white px-3 py-1 rounded text-sm">
+                      Add Review
+                    </button>
+                  </Dialog.Trigger>
 
-  <Dialog.Content maxWidth="450px">
-    <Dialog.Title>Add a Review</Dialog.Title>
-    <Dialog.Description>Share your experience about this company.</Dialog.Description>
+                  <Dialog.Content maxWidth="450px">
+                    <Dialog.Title>Add a Review</Dialog.Title>
+                    <Dialog.Description>Share your experience about this company.</Dialog.Description>
 
-    <textarea
-      className="w-full border rounded-md mt-4 p-2"
-      rows={4}
-      placeholder="Write your review here..."
-      value={reviewText}
-      onChange={(e) => setReviewText(e.target.value)}
-    />
+                    <textarea
+                      className="w-full border rounded-md mt-4 p-2"
+                      rows={4}
+                      placeholder="Write your review here..."
+                      value={reviewText}
+                      onChange={(e) => setReviewText(e.target.value)}
+                    />
 
-    <div className="flex justify-end mt-4 gap-3">
-      <Dialog.Close>
-        <button className="px-4 py-2 bg-gray-200 rounded-md">Cancel</button>
-      </Dialog.Close>
-      <button
-        className="px-4 py-2 bg-blue-600 text-white rounded-md"
-        onClick={async () => {
-          const res = await fetch(`http://localhost:3000/api/review`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              company_id: id,
-              content: reviewText,
-              user_id: "USER_ID_HERE", // replace with real user id from context
-            }),
-          });
-
-          const data = await res.json();
-          if (data.success) {
-            setOpen(false);
-            setReviewText("");
-
-            // Optional: Refresh review list
-            setCompany((prev) =>
-              prev
-                ? {
-                    ...prev,
-                    review: [...prev.review, { content: reviewText, user: { email: "You" } }],
-                  }
-                : null
-            );
-          } else {
-            alert(data.message || "Failed to add review");
-          }
-        }}
-      >
-        Submit
-      </button>
-    </div>
-  </Dialog.Content>
-</Dialog.Root>
+                    <div className="flex justify-end mt-4 gap-3">
+                      <Dialog.Close>
+                        <button className="px-4 py-2 bg-gray-200 rounded-md">Cancel</button>
+                      </Dialog.Close>
+                      <button
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md"
+                        onClick={handelReview}
+                      >
+                        Submit
+                      </button>
+                    </div>
+                  </Dialog.Content>
+                </Dialog.Root>
 
                 {company.review.length === 0 ? (
                   <div>No reviews yet.</div>

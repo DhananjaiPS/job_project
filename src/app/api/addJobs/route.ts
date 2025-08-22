@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromCookie } from "../../Helper/helper";
-import prismaClient from "@/app/service/prisma";
+import { getUserFromCookie } from "../../../Helper/helper";
+import prismaClient from "@/service/prisma";
 
 
 

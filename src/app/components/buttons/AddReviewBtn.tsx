@@ -8,7 +8,7 @@ export default function AddReviewBtn() {
         const obj={
             review
         }
-        const url="http://localhost:3000/company/review"
+        const url=" /company/review"
         const res=await fetch(url,{
             method:"POST",
             body:JSON.stringify(obj)

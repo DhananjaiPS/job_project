@@ -1,5 +1,5 @@
-import { getUserFromCookie } from "@/app/Helper/helper"
-import prismaClient from "@/app/service/prisma";
+import { getUserFromCookie } from "@/Helper/helper"
+import prismaClient from "@/service/prisma";
 
 export default async function Page() {
 

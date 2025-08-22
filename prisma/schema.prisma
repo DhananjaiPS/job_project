@@ -8,21 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model job {
-  id               String  @id @default(auto()) @map("_id") @db.ObjectId
-  title            String
-  description      String
-  job_type         String  @default("on site")
-  employment_type  String  @default("fulltime")
-  location         String
-  salary           Int
-  category         String
-  job_id           String?
-  apply_link       String?
-  responsibilities String?
-  qualifications   String?
-  logo             String?
-}
 
 model user {
   id          String        @id @default(auto()) @map("_id") @db.ObjectId
@@ -32,18 +17,54 @@ model user {
   review      review[]
   application application[]
 }
+
 model company {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String
   ownerId     String    @unique
   jobs        opening[]
-
-  review      review[]  // 👈 ADD THIS
+  save save[]
+  review      review[] 
 }
 
-
 model opening {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  description     String
+  job_type        String        @default("on site")
+  employment_type String        @default("fulltime")
+  location        String
+  salary          Int
+  company_id      String        @db.ObjectId
+  company         company       @relation(fields: [company_id], references: [id])
+  application     application[]
+  category         String?
+  job_id           String?
+  apply_link       String?
+  responsibilities String?
+  qualifications   String?
+  logo             String?
+}
+model save {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  description     String
+  job_type        String        @default("on site")
+  employment_type String        @default("fulltime")
+  location        String
+  salary          Int
+  company_id      String        @db.ObjectId
+  company         company       @relation(fields: [company_id], references: [id])
+  application     application[]
+  category         String?
+  job_id           String?
+  apply_link       String?
+  responsibilities String?
+  qualifications   String?
+  logo             String?
+}
+model job {
   id               String  @id @default(auto()) @map("_id") @db.ObjectId
   title            String
   description      String
@@ -51,29 +72,30 @@ model opening {
   employment_type  String  @default("fulltime")
   location         String
   salary           Int
-  company_id       String  @db.ObjectId
-  company          company @relation(fields: [company_id], references: [id])
-  application application[]
+  category         String?
+  job_id           String?
+  apply_link       String?
+  responsibilities String?
+  qualifications   String?
+  logo             String?
 }
+
 model review {
-  id      String @id @default(auto()) @map("_id") @db.ObjectId
-  content String
-  user_id String @db.ObjectId
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  content    String
+  user_id    String @db.ObjectId
   company_id String @db.ObjectId
 
   user    user    @relation(fields: [user_id], references: [id])
-  company company @relation(fields: [company_id], references: [id]) 
+  company company @relation(fields: [company_id], references: [id])
 }
 
-
-  //kisne or ka apply kiya 
+//kisne or ka apply kiya 
 model application {
-  id      String @id @default(auto()) @map("_id") @db.ObjectId
-  user_id String @db.ObjectId
-  user    user   @relation(fields: [user_id], references: [id])
+  id      String  @id @default(auto()) @map("_id") @db.ObjectId
+  user_id String  @db.ObjectId
+  user    user    @relation(fields: [user_id], references: [id])
   job_id  String  @db.ObjectId
   opening opening @relation(fields: [job_id], references: [id])
+  save save @relation(fields: [job_id], references: [id])
 }
-
-
-

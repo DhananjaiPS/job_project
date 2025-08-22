@@ -1,25 +1,25 @@
-//@ts-nocheck
+
 "use client"
 
-import { useContext, useState } from "react"
+import { FormEvent, useContext, useState } from "react"
 import { MainContext } from "../layout"
 import { useRouter } from "next/navigation"
 import { LogIn, Mail, Lock, Eye, EyeOff } from "lucide-react"
 
 export default function LoginPage() {
     const router = useRouter();
-    const { email, setEmail, pass, setPass } = useContext(MainContext);
-    const [error, setError] = useState({});
+    const { email, setEmail, password, setPassword } = useContext(MainContext);
+    const [error, setError] = useState<{message?:string}>({});
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleValidation = async (e) => {
+    const handleValidation = async (e:FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        const url = "http://localhost:3000/api/login";
+        const url = " /api/login";
         const obj = {
             email,
-            password: pass,
+            password: password,
         }
 
         try {
@@ -49,7 +49,7 @@ export default function LoginPage() {
             <div className="w-full max-w-md">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full mb-4">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-cyan-400 to-indigo-600 rounded-full mb-4">
                         <LogIn className="w-8 h-8 text-white" />
                     </div>
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
@@ -97,8 +97,8 @@ export default function LoginPage() {
                                     type={showPassword ? "text" : "password"}
                                     name="password"
                                     placeholder="Enter your password"
-                                    value={pass}
-                                    onChange={e => setPass(e.target.value)}
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
                                     className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                                     required
                                 />
@@ -138,7 +138,7 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+                            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-cyan-400 to-blue-600 hover:from-blue-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
                         >
                             {isLoading ? (
                                 <div className="flex items-center">
@@ -154,16 +154,16 @@ export default function LoginPage() {
                         </button>
                     </div>
 
+                </form>
                     {/* Footer */}
                     <div className="mt-6 text-center">
                         <p className="text-sm text-gray-600">
                             Don't have an account?{" "}
-                            <button className="font-medium text-blue-600 hover:text-blue-800">
-                                Sign up here
+                            <button className="font-medium text-blue-600 hover:text-blue-800"  onClick={() => router.push("/register")}>
+                                Sign up here  
                             </button>
                         </p>
                     </div>
-                </form>
 
                 {/* Additional Footer */}
                 <div className="mt-8 text-center">

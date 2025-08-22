@@ -1,6 +1,6 @@
 "use client";
 
-import AddJobButton from "@/app/components/AddJobButton";
+import AddJobButton from "@/app/components/buttons/AddJobButton";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { company, opening } from "../../../../generated/prisma";
@@ -13,6 +13,33 @@ export default function Page() {
   const [jobsFromDb, setJobsFromDb] = useState<OpeningWithCompany[]>([]);
   const [scroll, setScroll] = useState(false);
   const addBtnRef = useRef<HTMLDivElement | null>(null);
+
+  function handelAfterTheAddToJobBtnFinishItsWorking(newJob: any) {
+
+
+    setJobsFromDb((prev) => {
+
+      if (newJob.removeTempId) {
+        return prev.filter((job) => job.id !== newJob.removeTempId);
+      }
+
+
+      if (newJob.tempId) {
+        return prev.map((job) =>
+          job.id === newJob.tempId
+            ? {
+              ...job,        // keep old optimistic fields (like company, description)
+              ...newJob,     // replace with server job
+              id: newJob.id, // overwrite tempId with real db id
+            }
+            : job
+        );
+      }
+
+      // console.log("Optimistice Job :",newJob)
+      return [...prev, newJob];
+    });
+  }
 
   useEffect(() => {
     async function fetchData() {
@@ -65,7 +92,7 @@ export default function Page() {
           </p>
           <div ref={addBtnRef} className="mt-15">
             {/* Top normal button */}
-            <AddJobButton scroll={false} />
+            <AddJobButton scroll={false} onJobAdded={handelAfterTheAddToJobBtnFinishItsWorking} />
           </div>
         </div>
       </section>
@@ -91,15 +118,15 @@ export default function Page() {
                       {item.title}
                     </h3>
                     <p className="text-sm mb-4 leading-relaxed line-clamp-1">
-                      {item.description.slice(0, 100)}...
+                      {item.description?.slice(0, 100) ?? "No description available"}
                     </p>
                     <div className="text-sm flex gap-4 items-center">
-                     <div className="w-[10vh] flex items-center gap-2">
-  <FaMapMarkerAlt className="flex-shrink-0" />
-  <span className="truncate overflow-hidden whitespace-nowrap">
-    {item.location}
-  </span>
-</div>
+                      <div className="w-[10vh] flex items-center gap-2">
+                        <FaMapMarkerAlt className="flex-shrink-0" />
+                        <span className="truncate overflow-hidden whitespace-nowrap">
+                          {item.location}
+                        </span>
+                      </div>
 
                       <div className="flex items-center gap-2">
                         <FaBriefcase />
@@ -133,10 +160,12 @@ export default function Page() {
         )}
       </section>
 
-      {/* Floating circular button */}
       {scroll && (
         <div className="fixed bottom-6 right-6 z-50">
-          <AddJobButton scroll={true} />
+          <AddJobButton
+            scroll={true}
+            onJobAdded={handelAfterTheAddToJobBtnFinishItsWorking}
+          />
         </div>
       )}
     </main>

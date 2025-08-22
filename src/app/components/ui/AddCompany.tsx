@@ -2,7 +2,7 @@
 import { Dialog, Button, Flex, Text, TextField } from "@radix-ui/themes";
 import { body } from "framer-motion/client";
 import { useContext, useState } from "react";
-import { UserContext } from "../(group)/layout";
+import { UserContext } from "../../(group)/layout";
 import { useRouter } from "next/navigation";
 export default function AddCompany() {
 
@@ -19,7 +19,7 @@ export default function AddCompany() {
         const obj = { name, description };
 
         try {
-            const res = await fetch("http://localhost:3000/api/company/", {
+            const res = await fetch(" /api/company/", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -54,9 +54,12 @@ export default function AddCompany() {
 
     return (
         <div>
-            <Dialog.Root>
+            <Dialog.Root >
                 <Dialog.Trigger>
-                    <Button>Add company</Button>
+                    <Button style={{
+                        backgroundColor:"blue"
+                        
+                    }}>Add company</Button>
                 </Dialog.Trigger>
 
                 <Dialog.Content maxWidth="450px">

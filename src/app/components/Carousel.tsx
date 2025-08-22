@@ -4,15 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 
 const images = [
-  "/career1.jpg", // Use job-related banner images
-  "/career2.jpg",
-  "/career3.jpg",
+  "/hero2.png",
+  "/pic2.png",
+  "/pic4.png",
 ];
 
 const slideData = [
-  { text: "Find Your Dream Job", link: "/jobs", btnText: "Browse Jobs" },
-  { text: "Hire the Best Talent", link: "/employers", btnText: "Start Hiring" },
-  { text: "Post a Job Today", link: "/post-job", btnText: "Post a Job" },
+  { text: "Find Your Dream Job", link: "/jobs?search=eng&jt=&et=&ms=", btnText: "Browse Jobs" },
+  { text: "Hire the Best Talent", link: " /jobs?search=engi&jt=&et=&ms=", btnText: "Start Hiring" },
+  { text: "Post a Job Today", link: "/addJobs", btnText: "Post a Job" },
 ];
 
 export default function Carousel() {
@@ -20,13 +20,13 @@ export default function Carousel() {
   const autoIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    autorotate();
+    startAutoRotate();
     return () => {
       if (autoIntervalRef.current) clearInterval(autoIntervalRef.current);
     };
   }, []);
 
-  const autorotate = () => {
+  const startAutoRotate = () => {
     if (autoIntervalRef.current) clearInterval(autoIntervalRef.current);
     autoIntervalRef.current = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % images.length);
@@ -38,14 +38,14 @@ export default function Carousel() {
     setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
 
   return (
-    <div className="relative w-full max-w-5xl h-[500px] mx-auto overflow-hidden rounded-lg shadow-lg">
+    <div className="relative w-full h-[75vh] sm:h-[500px] mx-auto overflow-hidden bg-white">
       {images.map((img, index) => {
         const { text, link, btnText } = slideData[index];
         return (
           <div
             key={index}
             className={clsx(
-              "absolute inset-0 transition-all duration-1000 ease-in-out flex flex-col items-center justify-center text-center px-6",
+              "absolute inset-0 transition-all duration-1000 ease-in-out w-[100%] " ,
               index === activeIndex
                 ? "opacity-100 translate-x-0 z-10"
                 : "opacity-0 translate-x-full z-0"
@@ -53,13 +53,28 @@ export default function Carousel() {
             style={{
               backgroundImage: `url(${img})`,
               backgroundSize: "cover",
-              backgroundPosition: "center",
+              backgroundRepeat:"no-repeat",
+              backgroundPosition: "center ",
+              width:"100%",
+              height:"80vh",
             }}
           >
-            <div className="bg-black/50 p-6 rounded-lg">
-              <h2 className="text-4xl font-bold text-white mb-4">{text}</h2>
+            {/* Gradient overlay for right side */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(90deg,rgba(255, 255, 255, 0) 0%, rgba(0, 140, 255, 0.79) 84%)",
+              }}
+            />
+
+            {/* Text content aligned right & slightly lower */}
+            <div className="relative z-10 flex flex-col justify-end items-end h-full px-10 md:px-20 pb-16 text-white text-right max-w-lg ml-auto">
+              <h2 className="text-3xl md:text-5xl font-bold mb-6 drop-shadow-lg">
+                {text}
+              </h2>
               <a href={link}>
-                <button className="rounded-xl text-lg font-semibold text-white bg-yellow-500 hover:bg-yellow-600 px-6 py-3 transition">
+                <button className="rounded-lg sm:text-lg font-semibold bg-blue-700 text-white hover:bg-blue-500 p-2 sm:px-6 sm:py-3 shadow-lg transition">
                   {btnText}
                 </button>
               </a>
@@ -71,28 +86,28 @@ export default function Carousel() {
       {/* Navigation Arrows */}
       <button
         onClick={goLeft}
-        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60"
+        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 text-white p-3 rounded-full hover:bg-black/60 z-20"
       >
-        ◀
+        
       </button>
       <button
         onClick={goRight}
-        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60"
+        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 text-white p-3 rounded-full hover:bg-black/60 z-20"
       >
-        ▶
+        
       </button>
 
       {/* Indicators */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
         {images.map((_, i) => (
           <div
             key={i}
             onClick={() => setActiveIndex(i)}
             className={clsx(
               "w-3 h-3 rounded-full cursor-pointer transition",
-              i === activeIndex ? "bg-yellow-500 scale-110" : "bg-gray-300"
+              i === activeIndex ? "bg-blue-400 scale-110" : "bg-white/60"
             )}
-          ></div>
+          />
         ))}
       </div>
     </div>

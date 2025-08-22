@@ -1,6 +1,23 @@
+//@ts-nocheck
+
 import { Dialog, Button } from "@radix-ui/themes";
 import { useContext, useEffect, useState } from "react";
-export default function ViewJobApplicant({ job }) {
+import { job } from "../../../generated/prisma";
+type Job = {
+  id: string;
+  title: string;
+  category: string;
+  location?: string;
+  job_type: string;
+  description?: string;
+  responsibilities?: string;
+  qualifications?: string;
+  salary?: number;
+  company_id: string;
+  apply_link?: string;
+  UserHasApplied?: boolean;
+};
+export default function ViewJobApplicant({ job }:{job:Job}) {
 
     const [applicants, setApplicants] = useState([])
 
@@ -12,15 +29,11 @@ export default function ViewJobApplicant({ job }) {
             console.log("Applicant data oncllick :",data);
             if (data.success) {
                 setApplicants(data?.data);
-                
             }
             else {
                 alert(data.message)
-            }
-
-        
-    }
-   
+            }        
+    }   
     useEffect(() => {
         async function getApplicants() {
             const res = await fetch("/api/applicants/" + job.id)

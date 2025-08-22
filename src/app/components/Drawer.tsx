@@ -1,31 +1,34 @@
 "use client";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { UserContext } from "../(group)/layout";
 import { logout } from "@/actions/logout";
 import Link from "next/link";
-import { ul } from "framer-motion/client";
 import { useRouter } from "next/navigation";
 
 export default function Drawer() {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, setUser } = useContext(UserContext)
-  const router = useRouter()
-  const { email, company_id } = user
-  console.log("Drawer company id :", company_id)
+  const { user, setUser } = useContext(UserContext);
+  const router = useRouter();
+
+  // Safely extract email and company_id
+  const email = user?.email ?? null;
+  const company_id = user?.company?.id ?? null;
+
   async function handelLogout() {
     const res = await logout();
     if (res.success) {
       alert(res.message);
-      setUser("");
+      setUser(null); // ✅ don't set to "" (string), keep type consistency
       router.push("/login");
     }
   }
+
   return (
     <>
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="sm:hidden  text-white text-3xl rounded"
+        className="sm:hidden text-white text-3xl rounded"
       >
         ☰
       </button>
@@ -40,8 +43,9 @@ export default function Drawer() {
 
       {/* Drawer Panel */}
       <div
-        className={`fixed top-0 right-0 h-full w-64 bg-blue-500 text-white black shadow-lg z-50 transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+        className={`fixed top-0 right-0 h-full w-64 bg-blue-500 text-white shadow-lg z-50 transform transition-transform duration-300 ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
       >
         <div className="p-4 flex justify-between items-center border-b">
           <h2 className="text-lg font-semibold">Menu</h2>
@@ -55,30 +59,54 @@ export default function Drawer() {
 
         <ul className="p-4 flex flex-col gap-4">
           <li>
-            <a href="/" onClick={() => setIsOpen(false)} className="hover:text-blue-600">
+            <a
+              href="/"
+              onClick={() => setIsOpen(false)}
+              className="hover:text-blue-600"
+            >
               Home
             </a>
           </li>
           <li>
-            <a href="/jobs" onClick={() => setIsOpen(false)} className="hover:text-blue-600">
+            <a
+              href="/jobs?search=engineer"
+              onClick={() => setIsOpen(false)}
+              className="hover:text-blue-600"
+            >
               Jobs
             </a>
           </li>
           <li>
-            <a href="/saved" onClick={() => setIsOpen(false)} className="hover:text-blue-600">
+            <a
+              href="/saved"
+              onClick={() => setIsOpen(false)}
+              className="hover:text-blue-600"
+            >
               Saved Jobs
             </a>
           </li>
-          {!email && <li>
-            <a href="/login" onClick={() => setIsOpen(false)} className="hover:text-blue-600">
-              Login
-            </a>
-          </li>}
+
+          {!email && (
+            <li>
+              <a
+                href="/login"
+                onClick={() => setIsOpen(false)}
+                className="hover:text-blue-600"
+              >
+                Login
+              </a>
+            </li>
+          )}
+
           {email && (
             <>
               {!company_id && (
                 <li>
-                  <a href="/company" onClick={() => setIsOpen(false)} className="hover:text-blue-600">
+                  <a
+                    href="/company"
+                    onClick={() => setIsOpen(false)}
+                    className="hover:text-blue-600"
+                  >
                     Add company
                   </a>
                 </li>
@@ -88,13 +116,20 @@ export default function Drawer() {
                 <>
                   <li>
                     <Link href={`/company/${company_id}`}>
-                      <p className="hover:text-blue-600" onClick={() => setIsOpen(false)}>
+                      <p
+                        className="hover:text-blue-600"
+                        onClick={() => setIsOpen(false)}
+                      >
                         Company Details
                       </p>
                     </Link>
                   </li>
                   <li>
-                    <a href="/addJobs" onClick={() => setIsOpen(false)} className="hover:text-blue-600">
+                    <a
+                      href="/addJobs"
+                      onClick={() => setIsOpen(false)}
+                      className="hover:text-blue-600"
+                    >
                       Add Jobs
                     </a>
                   </li>
@@ -102,13 +137,17 @@ export default function Drawer() {
               )}
 
               <li>
-                <a href="/profile" onClick={() => setIsOpen(false)} className="hover:text-blue-600">
+                <a
+                  href="/profile"
+                  onClick={() => setIsOpen(false)}
+                  className="hover:text-blue-600"
+                >
                   Profile
                 </a>
               </li>
               <li>
                 <a
-                  className="hover:text-blue-600"
+                  className="hover:text-blue-600 cursor-pointer"
                   onClick={async () => {
                     await handelLogout();
                     setIsOpen(false);
@@ -119,8 +158,6 @@ export default function Drawer() {
               </li>
             </>
           )}
-
-
         </ul>
       </div>
     </>

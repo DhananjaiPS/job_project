@@ -1,16 +1,33 @@
-"use server"
+"use server";
 
-import prismaClient from "@/app/service/prisma";
-import { cookies } from "next/headers"
+import prismaClient from "@/service/prisma";
+import { cookies } from "next/headers";
 
-export default function CheckCompany() {
-  const cookie=await cookies()
-  const email=cookie.get("token");
-  const user=
-  const res=await prismaClient.company.findFirst({
-    where:{
-        ownerId
-        
-    }
-  })
+export default async function CheckCompany() {
+  
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token");
+
+  if (!token) {
+    throw new Error("No token found in cookies");
+  }
+
+ 
+  const email = token.value;
+
+  const user = await prismaClient.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const res = await prismaClient.company.findFirst({
+    where: {
+      ownerId: user.id,
+    },
+  });
+
+  return res;
 }

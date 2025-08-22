@@ -1,72 +1,86 @@
-import { getUserFromCookie } from "@/app/Helper/helper";
-import prismaClient from "@/app/service/prisma";
+// app/api/job/apply/[id]/route.ts
+import { getUserFromCookie } from "@/Helper/helper";
+import prismaClient from "@/service/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req:NextRequest,{params}:{params:{id:string}}){
-    const user=await getUserFromCookie();  //current user details using the cookie token "email" to fetch all
-    const job_id=params.id
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const user = await getUserFromCookie();
+  const {id}= await params;
+  const job_id = id;
 
-    if(!user){
-        return NextResponse.json({
-            success:false,
-            message:"User is not authenticated"
-        })
-    }
-    //2 test case : token mein h pr db mein nhi h
-    // and many more ....
-    const appToSave={
-        user_id:user?.id,
-        job_id:job_id,
+  if (!user) {
+    return NextResponse.json({
+      success: false,
+      message: "User is not authenticated",
+    });
+  }
 
-    }
-    try{
-        const application=await prismaClient.application.create({
-            data:appToSave
+  const appToSave = {
+    user_id: user.id,
+    job_id,
+  };
 
-        })
-        return NextResponse.json({
-            success:true,
-            data:application,
-            message :"apply successfully"
-        })
+  try {
+    const application = await prismaClient.application.create({
+      data: appToSave,
+    });
 
-    }
-    catch(error){
-        console.log(error.message)
-    }
-
+    return NextResponse.json({
+      success: true,
+      data: application,
+      message: "Applied successfully",
+    });
+  } catch (error: any) {
+    console.error(error.message);
+    return NextResponse.json({
+      success: false,
+      message: "Failed to apply for this job",
+    });
+  }
 }
 
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const user = await getUserFromCookie();
+  const {id}=await params;
+  const job_id =id;
 
+  if (!user || !job_id) {
+    return NextResponse.json({
+      success: false,
+      message: "Invalid request",
+    });
+  }
 
+  try {
+    const result = await prismaClient.application.deleteMany({
+      where: {
+        user_id: user.id,
+        job_id,
+      },
+    });
 
-export async function DELETE(req:NextRequest,{params}:{params:{id:string}}) {
-    const {id}=await params
-    const user=await getUserFromCookie()
-    const job_id=id
-    if(user && job_id){
-        try{
-            const application=await prismaClient.application.deleteMany({
-                where:{
-                    user_id:user.id,
-                    job_id
-                }
-            })
-            if(application){
-                return NextResponse.json({
-                    success:true,
-                    message:"Application withdraw successfully !!!"
-                })
-            }
-        }
-        catch(err){
-            return NextResponse.json({
-                success:false,
-                message:"Fatal Error has occured"
-            })
-        }
+    if (result.count > 0) {
+      return NextResponse.json({
+        success: true,
+        message: "Application withdrawn successfully!",
+      });
+    } else {
+      return NextResponse.json({
+        success: false,
+        message: "No application found to delete",
+      });
     }
-
-
-    
+  } catch (error: any) {
+    console.error(error.message);
+    return NextResponse.json({
+      success: false,
+      message: "Fatal error occurred",
+    });
+  }
 }

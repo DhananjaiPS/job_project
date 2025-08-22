@@ -1,4 +1,4 @@
-import prismaClient from "@/app/service/prisma";
+import prismaClient from "@/service/prisma";
 import { NextResponse } from "next/server";
 
 

@@ -1,4 +1,4 @@
-import prismaClient from "@/app/service/prisma";
+import prismaClient from "@/service/prisma";
 import { parseAppSegmentConfig } from "next/dist/build/segment-config/app/app-segment-config";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -39,11 +39,35 @@ export async function GET(req: NextRequest) {
       }
 
     });
+    const opening = await prismaClient.opening.findMany({
+      where: {
+        title: {
+          contains: q,
+          mode: "insensitive"
+        },
+        job_type: {
+          contains: jt,
+          mode: "insensitive"
+        }
+        , employment_type: {
+          contains: et,
+          mode: "insensitive"
+        },
+        salary: {
+          gte: ms,
+        }
+
+      }
+
+    });
 
     return NextResponse.json({
       success: true,
-      data: jobs,
+      data: [...opening,...jobs],
+      message:"Jobs fetched succcessfully"
+      
     });
+
   } catch (error) {
     console.error("Error fetching jobs:", error);
     return NextResponse.json(
