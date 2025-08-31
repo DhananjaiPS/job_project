@@ -1,11 +1,15 @@
-import type { NextConfig } from 'next';
-import type { Configuration } from 'webpack';
+// import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  webpack: (config: Configuration) => {
-    // your webpack tweaks here
-    return config;
-  },
-};
+// const nextConfig: NextConfig = {
+//   async redirects() {
+//     return [
+//       {
+//         source: "/",
+//         destination: "/jobs",
+//         permanent: false,
+//       },
+//     ];
+//   },
+// };
 
-export default nextConfig;
+// export default nextConfig;
